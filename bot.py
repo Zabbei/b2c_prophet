@@ -101,6 +101,10 @@ def start_message(message):
 # Реакция на текст (когда пользователь нажимает кнопку)
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
+    # ВОТ ЭТА СТРОЧКА: она будет выводить в логи имя пользователя и его вопрос
+    print(f"Пользователь {message.from_user.first_name} (id: {message.from_user.id}) нажал кнопку: {message.text}")
+    question = message.text
+    if question in qa_data:
     question = message.text
     # Если вопрос есть в нашем списке
     if question in qa_data:
