@@ -102,7 +102,7 @@ def start_message(message):
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
     # Логируем, кто и что нажал
-    print(f"Пользователь {message.from_user.first_name} (id: {message.from_user.id}) нажал кнопку: {message.text}")
+    print(f"Пользователь {message.from_user.first_name} (id: {message.from_user.id}) нажал кнопку: {message.text}", flush=True)
    
     question = message.text
     # Проверяем, есть ли такой вопрос в нашем списке qa_data
