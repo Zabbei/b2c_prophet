@@ -101,19 +101,18 @@ def start_message(message):
 # Реакция на текст (когда пользователь нажимает кнопку)
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
-    # ВОТ ЭТА СТРОЧКА: она будет выводить в логи имя пользователя и его вопрос
+    # Логируем, кто и что нажал
     print(f"Пользователь {message.from_user.first_name} (id: {message.from_user.id}) нажал кнопку: {message.text}")
+   
     question = message.text
+    # Проверяем, есть ли такой вопрос в нашем списке qa_data
     if question in qa_data:
-    question = message.text
-    # Если вопрос есть в нашем списке
-    if question in qa_data:
-        # Выбираем случайный ответ из списка ответов для этого вопроса
+        # Выбираем случайный ответ
         answer = random.choice(qa_data[question])
         bot.send_message(message.chat.id, answer)
     else:
-        # Если написали что-то другое
-        bot.send_message(message.chat.id, "Пожалуйста, нажми на кнопку с вопросом внизу экрана.")
+        # Если пользователь написал что-то от себя, а не нажал кнопку
+        bot.send_message(message.chat.id, "Пожалуйста, нажми на одну из кнопок в меню.")
 
 # --- Служебный код для сервиса Render ---
 # Это нужно, чтобы бесплатный сервер не отключал нашего бота
