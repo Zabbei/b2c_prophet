@@ -4,10 +4,18 @@ from telebot import types
 import os
 from flask import Flask
 import threading
+import datetime
 
 # Получаем секретный ключ бота
 TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
+
+ANCHOR_DATE = datetime.date(2026, 4, 4)
+SCHEDULE_CYCLE = {
+    0: "Никита, Саша, Сева, Иван",
+    1: "Никита, Саша, Сева, Паша",
+    2: "Даша, Николина, Миша, Ангелина, Паша",
+    3: "Даша, Николина, Миша, Ангелина, Иван"
 
 # НАШИ ВОПРОСЫ И ОТВЕТЫ
 # Ты можешь менять текст в кавычках на свой!
@@ -74,8 +82,10 @@ qa_data = {
         "Что не мило, то попу в кадило",
         "Бери больше, кидай дальше, отдыхай, пока летит",
         "Кому лимонов ящик, а кому от хуя хрящик",
-        "Операция «Витязь» - я домой, а вы ебитесь"
+        "Операция «Витязь» - я домой, а вы ебитесь".
     ],
+     "Кто работает в дату?": [
+        "Введите дату в формате ДД.ММ.ГГГГ (например, 15.04.2026), чтобы узнать смену."
     "Анекдот хочу": [
         """Шёл рыцарь по пустыне. Долгим был его путь. По пути он потерял коня, шлем и доспехи. Остался только меч. 
 Рыцарь был голоден, и его мучила жажда.
@@ -408,29 +418,49 @@ def start_message(message):
         reply_markup=markup
     )
 
-# Реакция на текст (когда пользователь нажимает кнопку)
+# Реакция на текст
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
-    # Логируем, кто и что нажал
-    print(f"Пользователь {message.from_user.first_name} (id: {message.from_user.id}) нажал кнопку: {message.text}", flush=True)
-   
     question = message.text
-    # Проверяем, есть ли такой вопрос в нашем списке qa_data
+    print(f"Лог: {message.from_user.first_name} прислал: {question}", flush=True)
+
+    # 1. Если нажали кнопку "Кто работает в дату?"
+    if question == "Кто работает в дату?":
+        bot.send_message(message.chat.id, "Напиши дату в формате ДД.ММ.ГГГГ\nНапример: 01.05.2026")
+        return
+
+    # 2. Если ввели саму дату (проверяем формат через точки и длину)
+    if question.count('.') == 2 and len(question) == 10:
+        try:
+            # Превращаем текст в объект даты
+            day, month, year = map(int, question.split('.'))
+            target_date = datetime.date(year, month, day)
+           
+            # Считаем разницу в днях
+            delta = (target_date - ANCHOR_DATE).days
+           
+            # Магия математики: остаток от деления на 4 всегда даст 0, 1, 2 или 3
+            cycle_day = delta % 4
+            who = SCHEDULE_CYCLE[cycle_day]
+               
+            bot.send_message(message.chat.id, f"📅 На дату {question} выпадают:\n\n{who}")
+        except Exception as e:
+            bot.send_message(message.chat.id, "⚠️ Ошибка! Проверь формат: ДД.ММ.ГГГГ (например, 05.10.2026)")
+        return
+
+    # 3. Обычные ответы из словаря
     if question in qa_data:
-        # Выбираем случайный ответ
         answer = random.choice(qa_data[question])
         bot.send_message(message.chat.id, answer)
     else:
-        # Если пользователь написал что-то от себя, а не нажал кнопку
-        bot.send_message(message.chat.id, "Пожалуйста, нажми на одну из кнопок в меню.")
+        bot.send_message(message.chat.id, "Пожалуйста, используй кнопки или введи дату ДД.ММ.ГГГГ")
 
-# --- Служебный код для сервиса Render ---
-# Это нужно, чтобы бесплатный сервер не отключал нашего бота
+# --- Служебный код для Render ---
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Бот успешно работает!"
+    return "Бот работает!"
 
 def run_bot():
     bot.infinity_polling()
