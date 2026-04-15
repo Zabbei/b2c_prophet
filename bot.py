@@ -6,7 +6,7 @@ from flask import Flask
 import threading
 import datetime
 
-# Получаем секретный ключ бота
+# Получаем секретный ключ бота.
 TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
